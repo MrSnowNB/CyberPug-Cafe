@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Pug Cafe Chatbot</title>
+    <link rel="stylesheet" href="styles/cyberpunk.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Chat Panel -->
+        <div class="chat-panel">
+            <div id="chat-history" class="chat-messages"></div>
+            <div class="chat-input-area">
+                <textarea id="message-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+
+        <!-- Video Panel -->
+        <div class="video-panel">
+            <video id="pug-video" muted autoplay loop playsinline>
+                <!-- Fallback for browsers that don't support video -->
+                <p>Your browser doesn't support video playback.</p>
+            </video>
+            <div id="video-status" class="video-overlay"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/sentiment-analyzer.js"></script>
+    <script src="scripts/video-controller.js"></script>
+    <script src="scripts/chat-handler.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>

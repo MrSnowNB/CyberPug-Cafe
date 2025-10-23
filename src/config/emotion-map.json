@@ -1,0 +1,114 @@
+{
+  "agressive typing.mp4": {
+    "emotion": "angry",
+    "range": [
+      -4,
+      -5
+    ]
+  },
+  "big smile.mp4": {
+    "emotion": "positive",
+    "range": [
+      2,
+      4
+    ]
+  },
+  "eats snack.mp4": {
+    "emotion": "neutral",
+    "range": [
+      0,
+      0
+    ]
+  },
+  "flower sneeze.mp4": {
+    "emotion": "excited",
+    "range": [
+      3,
+      4
+    ]
+  },
+  "growling.mp4": {
+    "emotion": "angry",
+    "range": [
+      -4,
+      -5
+    ]
+  },
+  "head tilt.mp4": {
+    "emotion": "curious",
+    "range": [
+      -1,
+      1
+    ]
+  },
+  "looks excited.mp4": {
+    "emotion": "excited",
+    "range": [
+      3,
+      4
+    ]
+  },
+  "looks up and open mouth.mp4": {
+    "emotion": "excited",
+    "range": [
+      3,
+      4
+    ]
+  },
+  "looks up and raises hand.mp4": {
+    "emotion": "waiting",
+    "range": [
+      -1,
+      1
+    ]
+  },
+  "puts head down.mp4": {
+    "emotion": "negative",
+    "range": [
+      -2,
+      -4
+    ]
+  },
+  "surprised glow.mp4": {
+    "emotion": "excited",
+    "range": [
+      3,
+      4
+    ]
+  },
+  "the fly.mp4": {
+    "emotion": "negative",
+    "range": [
+      -2,
+      -4
+    ]
+  },
+  "tongue thing.mp4": {
+    "emotion": "neutral",
+    "range": [
+      -1,
+      1
+    ]
+  },
+  "typing slightly scared.mp4": {
+    "emotion": "focused",
+    "range": [
+      -1,
+      1
+    ]
+  },
+  "typing.mp4": {
+    "emotion": "neutral",
+    "range": [
+      -1,
+      0
+    ]
+  },
+  "wide eyed shocked.mp4": {
+    "emotion": "excited",
+    "range": [
+      3,
+      4
+    ]
+  }
+}

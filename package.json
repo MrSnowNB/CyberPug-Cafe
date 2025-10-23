@@ -1,0 +1,17 @@
+{
+  "name": "cyberpunk-pug-cafe-chatbot",
+  "version": "1.0.0",
+  "description": "Sentiment-based chatbot with pug video loops and neon cyberpunk UI",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "node src/main.js",
+    "test": "node .agent/testing-protocol.md"
+  },
+  "dependencies": {
+    "natural": "^6.0.0",
+    "three": "^0.162.0"
+  },
+  "author": "Mark Snow",
+  "license": "MIT"
+}
