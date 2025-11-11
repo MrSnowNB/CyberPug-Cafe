@@ -94,6 +94,13 @@ Automatically identifies coding requests using:
 - **File Traceability**: Tasks saved as downloadable Markdown files
 - **Error Handling**: Comprehensive failure capture and recovery
 
+### 📝 **Current Status & Next Steps**
+**✅ COMPLETED**: Chatbot-side MCP integration with Plan/Act modes, task serialization, and server status detection.
+
+**⏳ PENDING**: Local MCP server implementation in Cline extension to accept and execute tasks.
+
+**Note**: A local MCP server is required to complete this project. The chatbot foundation is ready - Cline extension needs MCP server endpoints to accept YAML task files and execute them using VSCode APIs. Will resume development when Cline MCP server capabilities are available.
+
 ## Enhanced Video System
 
 The chatbot now features a **dynamic multi-video emotion system** that makes full use of all 16 pug videos:
