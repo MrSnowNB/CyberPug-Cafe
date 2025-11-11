@@ -35,87 +35,293 @@ class SentimentAnalyzer {
   }
 
   /**
-   * Analyze sentiment of input text
+   * Analyze sentiment of input text with enhanced semantic understanding
    * @param {string} text - User input to analyze
-   * @returns {Object} Analysis result with score, state, and emotion
+   * @param {Object} context - Optional context from previous interactions
+   * @returns {Object} Analysis result with score, state, emotion, and context
    */
-  analyze(text) {
+  analyze(text, context = {}) {
     try {
       // Sanitize input
       const cleanText = this.sanitizeText(text);
 
       if (!cleanText || cleanText.length < 2) {
-        return { score: 0, state: 'neutral', emotion: 'neutral' };
+        return { score: 0, state: 'neutral', emotion: 'neutral', context: 'minimal_input' };
       }
 
-      // Simple word-based sentiment scoring
-      let score = 0;
-      const words = cleanText.split(/\s+/);
+      // Multi-layered analysis
+      const wordAnalysis = this.analyzeWords(cleanText);
+      const phraseAnalysis = this.analyzePhrases(cleanText);
+      const contextAnalysis = this.analyzeContext(cleanText, context);
+      const codingAnalysis = this.analyzeCodingSentiment(cleanText);
 
-      for (const word of words) {
-        // Check positive words
-        if (this.sentimentWords.positive[word]) {
-          score += this.sentimentWords.positive[word];
-        }
-        // Check negative words
-        else if (this.sentimentWords.negative[word]) {
-          score += this.sentimentWords.negative[word];
-        }
-      }
+      // Combine scores with weights
+      let combinedScore = (
+        wordAnalysis.score * 0.4 +
+        phraseAnalysis.score * 0.3 +
+        contextAnalysis.score * 0.2 +
+        codingAnalysis.score * 0.1
+      );
 
       // Normalize score based on text length (avoid extreme scores for long texts)
+      const words = cleanText.split(/\s+/);
       const maxPossibleScore = Math.max(words.length * 4, 5);
-      score = (score / maxPossibleScore) * 5;
-      score = Math.max(-5, Math.min(5, score));
+      combinedScore = (combinedScore / maxPossibleScore) * 5;
+      combinedScore = Math.max(-5, Math.min(5, combinedScore));
 
       // Check for edge triggers (override if stronger)
       const edgeState = this.checkEdgeTriggers(cleanText);
 
-      let finalScore = score;
-      let state = this.scoreToState(score);
+      let finalScore = combinedScore;
+      let state = this.scoreToState(combinedScore);
       let emotion = this.stateToEmotion(state, text);
 
       // Override with edge states if detected
       if (edgeState) {
         switch (edgeState) {
           case 'excited':
-            finalScore = Math.max(3, score);
+            finalScore = Math.max(3, combinedScore);
             state = 'very_positive';
             emotion = 'excited';
             break;
           case 'angry':
-            finalScore = Math.min(-3, score);
+            finalScore = Math.min(-3, combinedScore);
             state = 'very_negative';
             emotion = 'angry';
             break;
           case 'confused':
-            finalScore = Math.max(-2, Math.min(0, score));
+            finalScore = Math.max(-2, Math.min(0, combinedScore));
             state = 'negative';
             emotion = 'confused';
             break;
           case 'bored':
-            finalScore = Math.max(-1, Math.min(0, score));
+            finalScore = Math.max(-1, Math.min(0, combinedScore));
             state = 'neutral';
             emotion = 'bored';
             break;
         }
       }
 
+      // Determine intensity for video selection
+      const intensity = this.calculateIntensity(finalScore, cleanText);
+
       const result = {
         score: finalScore,
         state: state,
         emotion: emotion,
-        raw_score: score,
-        trigger: edgeState || 'none'
+        intensity: intensity,
+        raw_score: combinedScore,
+        trigger: edgeState || 'none',
+        context: this.determineContext(cleanText),
+        analysis: {
+          words: wordAnalysis,
+          phrases: phraseAnalysis,
+          context: contextAnalysis,
+          coding: codingAnalysis
+        }
       };
 
-      console.log(`Sentiment analysis: "${text}" → ${JSON.stringify(result)}`);
+      console.log(`Enhanced sentiment analysis: "${text}" → ${JSON.stringify(result)}`);
       return result;
 
     } catch (error) {
       console.error('Sentiment analysis error:', error);
-      return { score: 0, state: 'neutral', emotion: 'neutral', error: error.message };
+      return {
+        score: 0,
+        state: 'neutral',
+        emotion: 'neutral',
+        intensity: 'low',
+        context: 'error',
+        error: error.message
+      };
     }
+  }
+
+  /**
+   * Analyze individual words for sentiment
+   * @param {string} text - Clean text
+   * @returns {Object} Word analysis result
+   */
+  analyzeWords(text) {
+    let score = 0;
+    const words = text.split(/\s+/);
+
+    for (const word of words) {
+      // Check positive words
+      if (this.sentimentWords.positive[word]) {
+        score += this.sentimentWords.positive[word];
+      }
+      // Check negative words
+      else if (this.sentimentWords.negative[word]) {
+        score += this.sentimentWords.negative[word];
+      }
+    }
+
+    return { score: score, words_found: words.length };
+  }
+
+  /**
+   * Analyze phrases and multi-word expressions
+   * @param {string} text - Clean text
+   * @returns {Object} Phrase analysis result
+   */
+  analyzePhrases(text) {
+    let score = 0;
+    const phrases = [
+      // Positive phrases
+      { pattern: /\b(thank you|thanks so much|appreciate it)\b/i, score: 3 },
+      { pattern: /\b(that's awesome|that's great|wonderful)\b/i, score: 4 },
+      { pattern: /\b(i love it|i like it|it's good)\b/i, score: 3 },
+      { pattern: /\b(oh wow|wow that's|amazing)\b/i, score: 4 },
+
+      // Negative phrases
+      { pattern: /\b(that sucks|this is bad|not good)\b/i, score: -3 },
+      { pattern: /\b(i hate it|disgusting|terrible)\b/i, score: -4 },
+      { pattern: /\b(this is frustrating|so annoying|upsetting)\b/i, score: -3 },
+      { pattern: /\b(i'm confused|doesn't make sense|what)\b/i, score: -2 },
+
+      // Neutral/Question phrases
+      { pattern: /\b(how do i|can you|what is|explain)\b/i, score: 0.5 },
+      { pattern: /\b(help me|assist me|guide me)\b/i, score: 1 }
+    ];
+
+    for (const phrase of phrases) {
+      if (phrase.pattern.test(text)) {
+        score += phrase.score;
+      }
+    }
+
+    return { score: score, phrases_matched: score !== 0 };
+  }
+
+  /**
+   * Analyze context from conversation flow
+   * @param {string} text - Clean text
+   * @param {Object} context - Previous interaction context
+   * @returns {Object} Context analysis result
+   */
+  analyzeContext(text, context) {
+    let score = 0;
+
+    // Question detection (curiosity)
+    if (text.includes('?') || /^\s*(what|how|why|when|where|who|which)/i.test(text)) {
+      score += 0.5;
+    }
+
+    // Command/request detection
+    if (/^\s*(can you|please|help me|show me)/i.test(text)) {
+      score += 0.3;
+    }
+
+    // Short acknowledgments (patience)
+    if (/^\s*(ok|okay|yes|yeah|sure|got it|understood)/i.test(text)) {
+      score += 0.2;
+    }
+
+    // Escalation detection from previous context
+    if (context.previousEmotion === 'frustrated' && this.isFrustrated(text)) {
+      score -= 0.5; // Escalate negative sentiment
+    }
+
+    return { score: score, context_detected: score !== 0 };
+  }
+
+  /**
+   * Analyze coding-specific sentiment patterns
+   * @param {string} text - Clean text
+   * @returns {Object} Coding analysis result
+   */
+  analyzeCodingSentiment(text) {
+    let score = 0;
+
+    // Coding frustration indicators
+    const frustrationPatterns = [
+      /\b(bug|error|fail|broken|doesn't work)\b/i,
+      /\b(stuck|confused|lost|no idea)\b/i,
+      /\b(why won't|can't figure|driving me crazy)\b/i,
+      /\b(hours|days|forever) (trying|working|debugging)\b/i
+    ];
+
+    // Coding success indicators
+    const successPatterns = [
+      /\b(fixed it|working now|solved|figured out)\b/i,
+      /\b(that was easy|simple|straightforward)\b/i,
+      /\b(great|awesome|love) (code|programming|debugging)\b/i
+    ];
+
+    // Check frustration
+    for (const pattern of frustrationPatterns) {
+      if (pattern.test(text)) {
+        score -= 2;
+        break;
+      }
+    }
+
+    // Check success (can override frustration)
+    for (const pattern of successPatterns) {
+      if (pattern.test(text)) {
+        score += 3;
+        break;
+      }
+    }
+
+    return { score: score, coding_context: score !== 0 };
+  }
+
+  /**
+   * Check if text indicates frustration
+   * @param {string} text - Text to check
+   * @returns {boolean} Whether text shows frustration
+   */
+  isFrustrated(text) {
+    return /\b(frustrated|annoyed|upset|angry|mad)\b/i.test(text);
+  }
+
+  /**
+   * Calculate intensity level for video selection
+   * @param {number} score - Final sentiment score
+   * @param {string} text - Original text for context
+   * @returns {string} Intensity level
+   */
+  calculateIntensity(score, text) {
+    const absScore = Math.abs(score);
+
+    // High intensity indicators
+    if (absScore >= 4 || /(!{2,}|\?{2,}|wow|amazing|terrible|awesome)/i.test(text)) {
+      return 'high';
+    }
+
+    // Medium intensity
+    if (absScore >= 2 || /(really|very|so much|quite)/i.test(text)) {
+      return 'medium';
+    }
+
+    return 'low';
+  }
+
+  /**
+   * Determine conversation context for better video matching
+   * @param {string} text - Clean text
+   * @returns {string} Context category
+   */
+  determineContext(text) {
+    if (text.includes('?') || /^\s*(what|how|why|when|where|who|which|can you|help)/i.test(text)) {
+      return 'questioning';
+    }
+
+    if (/^\s*(ok|okay|yes|yeah|sure|got it|thanks?|thank you)/i.test(text)) {
+      return 'acknowledging';
+    }
+
+    if (/\b(code|programming|debug|error|function|variable|script)\b/i.test(text)) {
+      return 'coding';
+    }
+
+    if (/(!{2,}|\?{2,}|wow|amazing|terrible|awesome)/i.test(text)) {
+      return 'expressive';
+    }
+
+    return 'general';
   }
 
   /**

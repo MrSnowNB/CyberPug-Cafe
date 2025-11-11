@@ -4,7 +4,14 @@ class ChatHandler {
   constructor() {
     this.sentimentAnalyzer = null;
     this.videoController = null;
+    this.voiceController = null;
     this.currentSentiment = { score: 0, emotion: 'neutral' };
+    this.conversationContext = {
+      messageCount: 0,
+      emotionHistory: [],
+      lastInteraction: null,
+      codingMode: false
+    };
 
     // Mock responses for local development (replace with actual API calls)
     this.mockResponses = {
@@ -58,12 +65,13 @@ class ChatHandler {
   /**
    * Set dependencies
    * @param {SentimentAnalyzer} analyzer - Sentiment analyzer instance
-   * @param {VideoController} controller - Video controller instance
-   * @param {SentimentWavefront} wavefront - Sentiment wavefront instance
+   * @param {VideoController} videoController - Video controller instance
+   * @param {VoiceController} voiceController - Voice controller instance
    */
-  setDependencies(analyzer, controller) {
+  setDependencies(analyzer, videoController, voiceController) {
     this.sentimentAnalyzer = analyzer;
-    this.videoController = controller;
+    this.videoController = videoController;
+    this.voiceController = voiceController;
   }
 
   /**
@@ -77,26 +85,38 @@ class ChatHandler {
     try {
       console.log('Processing message:', message);
 
-      // Analyze sentiment
+      // Analyze sentiment with enhanced analysis
       if (!this.sentimentAnalyzer) {
         throw new Error('Sentiment analyzer not available');
       }
 
-      const sentiment = this.sentimentAnalyzer.analyze(message);
+      const sentiment = this.sentimentAnalyzer.analyze(message, {
+        previousEmotion: this.currentSentiment?.emotion,
+        conversationContext: this.conversationContext
+      });
       this.currentSentiment = sentiment;
 
-      console.log('Sentiment analyzed:', sentiment);
+      // Update conversation context for future analysis
+      this.updateConversationContext(sentiment);
 
-      // Switch video based on emotion
+      console.log('Enhanced sentiment analyzed:', sentiment);
+
+      // Generate response first
+      const response = await this.generateResponse(message, sentiment);
+
+      // Estimate voice duration for video synchronization
+      const estimatedVoiceDuration = this.estimateVoiceDuration(response);
+
+      // Switch video based on emotion synchronized with voice duration
       if (this.videoController) {
-        const videoSwitched = this.videoController.switchToVideo(sentiment.emotion);
+        const videoSwitched = this.videoController.switchToVideoForVoice(
+          sentiment.emotion,
+          estimatedVoiceDuration
+        );
         if (!videoSwitched) {
           console.warn('Video switch failed or exceeded latency');
         }
       }
-
-      // Generate response
-      const response = await this.generateResponse(message, sentiment);
 
       const endTime = performance.now();
       const totalTime = endTime - startTime;
@@ -141,12 +161,17 @@ class ChatHandler {
    */
   async callOllamaAPI(message, sentiment) {
     try {
+      const isCodingMode = this.conversationContext.codingMode;
+      const prompt = isCodingMode
+        ? `You are a cyberpunk hacker pug coding assistant. User sentiment: ${sentiment.emotion}. User says: "${message}". Respond as a pug hacker: be concise, technical, helpful. Use 1-2 sentences max. Include subtle cyberpunk/tech references.`
+        : `You are a friendly cyberpunk pug chatbot. User sentiment: ${sentiment.emotion}. User says: "${message}". Respond naturally as a pug: be concise, friendly. Use 1-2 sentences max. Include subtle cyberpunk references.`;
+
       const response = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gemma3:latest',
-          prompt: `You are a friendly pug barista at a unique cyberpunk-style cafe. User sentiment: ${sentiment.emotion} (score: ${sentiment.score}). User says: "${message}". Respond naturally as a pug, with occasional subtle cyberpunk references and single-word Japanese slang in katakana.`,
+          prompt: prompt,
           stream: false
         })
       });
@@ -206,7 +231,7 @@ class ChatHandler {
   }
 
   /**
-   * Update message history in UI
+   * Update message history in UI and speak response
    * @param {string} userMessage - User message
    * @param {string} botMessage - Bot response
    */
@@ -223,7 +248,7 @@ class ChatHandler {
     // Add bot message with typing indicator
     this.showTypingIndicator();
 
-    setTimeout(() => {
+    setTimeout(async () => {
       this.hideTypingIndicator();
 
       const botDiv = document.createElement('div');
@@ -233,6 +258,18 @@ class ChatHandler {
 
       // Auto-scroll to bottom
       chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      // Speak the response with current sentiment context
+      if (this.voiceController && this.voiceController.isAvailable()) {
+        try {
+          await this.voiceController.speak(botMessage, this.currentSentiment, {
+            codingMode: this.conversationContext.codingMode
+          });
+        } catch (error) {
+          console.warn('Voice synthesis failed:', error);
+          // Continue without voice - don't break the UI
+        }
+      }
     }, 500 + Math.random() * 1000); // Random delay for natural feel
   }
 
@@ -264,6 +301,74 @@ class ChatHandler {
     if (indicator) {
       indicator.remove();
     }
+  }
+
+  /**
+   * Update conversation context for future sentiment analysis
+   * @param {Object} sentiment - Current sentiment analysis result
+   */
+  updateConversationContext(sentiment) {
+    // Track message count
+    this.conversationContext.messageCount++;
+
+    // Maintain emotion history (last 5 emotions)
+    this.conversationContext.emotionHistory.unshift(sentiment.emotion);
+    if (this.conversationContext.emotionHistory.length > 5) {
+      this.conversationContext.emotionHistory = this.conversationContext.emotionHistory.slice(0, 5);
+    }
+
+    // Update last interaction timestamp
+    this.conversationContext.lastInteraction = Date.now();
+
+    // Detect coding mode based on context patterns
+    this.updateCodingMode(sentiment);
+  }
+
+  /**
+   * Update coding mode detection based on conversation patterns
+   * @param {Object} sentiment - Current sentiment analysis
+   */
+  updateCodingMode(sentiment) {
+    const recentEmotions = this.conversationContext.emotionHistory.slice(0, 3);
+    const codingIndicators = ['confused', 'frustrated', 'angry'];
+
+    // If user has been confused/frustrated recently and current context is coding
+    if (sentiment.context === 'coding' ||
+      (recentEmotions.some(emotion => codingIndicators.includes(emotion)) && sentiment.context === 'coding')) {
+      this.conversationContext.codingMode = true;
+    }
+
+    // Exit coding mode if conversation shifts to positive/casual topics
+    if (sentiment.emotion === 'happy' || sentiment.emotion === 'excited') {
+      this.conversationContext.codingMode = false;
+    }
+  }
+
+  /**
+   * Estimate voice duration for video synchronization
+   * @param {string} text - Text to be spoken
+   * @returns {number} Estimated duration in milliseconds
+   */
+  estimateVoiceDuration(text) {
+    if (!text) return 2000; // Default fallback
+
+    // Average speaking rate: ~150 words per minute = ~2.5 words per second
+    // Average word length: ~5 characters
+    const wordsPerMinute = 150;
+    const wordsPerSecond = wordsPerMinute / 60;
+    const charsPerSecond = wordsPerSecond * 5; // Rough estimate
+
+    const charCount = text.length;
+    const estimatedSeconds = charCount / charsPerSecond;
+
+    // Add padding for natural pauses and processing
+    const paddedSeconds = estimatedSeconds + 0.5;
+
+    // Convert to milliseconds, with min/max bounds
+    const durationMs = Math.max(1500, Math.min(8000, paddedSeconds * 1000));
+
+    console.log(`Estimated voice duration for "${text.substring(0, 30)}...": ${durationMs}ms`);
+    return durationMs;
   }
 }
 

@@ -93,12 +93,13 @@ class VideoController {
   }
 
   /**
-   * Switch to video sequence based on emotion (6s emotion + 12s typing)
+   * Switch to emotion video that loops until voice completes, then return to neutral cycling
    * @param {string} emotion - Emotion category
+   * @param {number} voiceDurationMs - Expected voice duration in milliseconds
    * @param {boolean} withTransition - Whether to add transition effects
    * @returns {boolean} Success status
    */
-  switchToVideo(emotion, withTransition = true) {
+  switchToVideoForVoice(emotion, voiceDurationMs = 3000, withTransition = true) {
     // Clear any existing sequence
     this.clearCurrentSequence();
 
@@ -112,44 +113,123 @@ class VideoController {
       return false;
     }
 
-    // Always use typing video for the follow-up sequence
-    const typingVideoFile = this.findVideoForEmotion('neutral'); // Get any neutral video
+    console.log(`Playing emotion video: ${emotion} (${emotionVideoFile}) for ${voiceDurationMs}ms`);
 
-    console.log(`Starting sequence: ${emotion} (${emotionVideoFile}) → typing (${typingVideoFile})`);
+    // Start emotion video with continuous looping
+    this.playVideoWithLooping(emotionVideoFile, withTransition);
 
-    // Start with emotion video (6 seconds)
-    this.playVideo(emotionVideoFile, withTransition);
-
-    // Set up sequence: 6s emotion → 12s typing (2 loops)
+    // Set up voice-synchronized sequence
     this.currentSequence = {
       emotion: emotion,
-      videos: [emotionVideoFile, typingVideoFile],
-      duration: 18000, // 18 seconds total
-      startTime: startTime
+      video: emotionVideoFile,
+      voiceDuration: voiceDurationMs,
+      startTime: startTime,
+      type: 'voice-synced'
     };
 
-    // Schedule transition to typing video after 6 seconds (with looping)
-    const emotionTimeout = setTimeout(() => {
-      console.log('Sequence: Emotion complete, switching to typing (2 loops)');
-      this.playVideoWithLoops(typingVideoFile, false, 2); // Loop typing video twice
-      this.updateStatus(`${emotion} → typing | 12s remaining`);
-    }, 6000);
+    // Schedule return to neutral cycling after voice completes
+    const returnToNeutralTimeout = setTimeout(() => {
+      console.log('Voice complete, returning to neutral video cycling');
+      this.startNeutralCycling();
+    }, voiceDurationMs);
 
-    // Schedule sequence end (will restart with new emotion)
-    const endTimeout = setTimeout(() => {
-      console.log('Sequence complete, ready for next emotion');
-      this.clearCurrentSequence();
-    }, 18000);
-
-    this.sequenceTimeouts = [emotionTimeout, endTimeout];
+    this.sequenceTimeouts = [returnToNeutralTimeout];
 
     const endTime = performance.now();
     const switchTime = endTime - startTime;
 
-    this.updateStatus(`${emotion} → sequence | ${switchTime.toFixed(1)}ms`);
-    console.log(`Started 18s sequence: ${emotionVideoFile} → ${typingVideoFile} (${switchTime.toFixed(1)}ms)`);
+    this.updateStatus(`${emotion} → ${voiceDurationMs}ms voice`);
+    console.log(`Started voice-synced sequence: ${emotionVideoFile} (${switchTime.toFixed(1)}ms)`);
 
     return switchTime < 300;
+  }
+
+  /**
+   * Start random neutral video cycling
+   */
+  startNeutralCycling() {
+    // Clear any existing sequence
+    this.clearCurrentSequence();
+
+    console.log('Starting neutral video cycling');
+
+    // Get random neutral video
+    const neutralVideo = this.findVideoForEmotion('neutral');
+    if (neutralVideo) {
+      this.playVideoWithLooping(neutralVideo, true);
+
+      // Set up cycling every 8-12 seconds
+      const cycleInterval = 8000 + Math.random() * 4000; // 8-12 seconds
+
+      const cycleTimeout = setTimeout(() => {
+        this.startNeutralCycling(); // Recursively cycle
+      }, cycleInterval);
+
+      this.sequenceTimeouts = [cycleTimeout];
+      this.currentSequence = {
+        type: 'neutral-cycling',
+        interval: cycleInterval
+      };
+
+      this.updateStatus(`Neutral cycling (${cycleInterval.toFixed(0)}ms)`);
+    }
+  }
+
+  /**
+   * Play a video with continuous looping (for voice synchronization)
+   * @param {string} videoFile - Video filename
+   * @param {boolean} withTransition - Whether to add transition effects
+   */
+  playVideoWithLooping(videoFile, withTransition = true) {
+    const video = this.preloadedVideos.get(videoFile);
+    if (!video) {
+      console.error(`Video not preloaded: ${videoFile}`);
+      return false;
+    }
+
+    // Clear any existing event listeners
+    if (this.videoElement.onended) {
+      this.videoElement.onended = null;
+    }
+
+    // Replace current video
+    if (this.currentVideo) {
+      this.videoElement.pause();
+    }
+
+    this.currentVideo = video;
+    this.videoElement.src = video.src;
+    this.videoElement.load();
+
+    // Set up continuous looping
+    this.videoElement.loop = true;
+
+    this.videoElement.play().catch(e => {
+      console.warn('Video autoplay failed:', e);
+      this.updateStatus('Video autoplay blocked');
+    });
+
+    // Apply transition effect
+    if (withTransition) {
+      this.videoElement.classList.add('video-transition');
+      setTimeout(() => {
+        this.videoElement.classList.remove('video-transition');
+      }, 300);
+    }
+
+    console.log(`Playing looping video: ${videoFile}`);
+    return true;
+  }
+
+  /**
+   * Legacy method for backward compatibility - redirects to voice-synced version
+   * @param {string} emotion - Emotion category
+   * @param {boolean} withTransition - Whether to add transition effects
+   * @returns {boolean} Success status
+   */
+  switchToVideo(emotion, withTransition = true) {
+    // Default to 3 second voice duration for legacy calls
+    return this.switchToVideoForVoice(emotion, 3000, withTransition);
   }
 
   /**
@@ -265,20 +345,22 @@ class VideoController {
   }
 
   /**
-   * Find video filename for given emotion
+   * Find video filename for given emotion with context awareness
    * @param {string} emotion - Emotion category
+   * @param {number} intensity - Sentiment intensity (-5 to +5)
+   * @param {string} context - Optional context for better matching
    * @returns {string|null} Video filename
    */
-  findVideoForEmotion(emotion) {
-    // Find videos in emotion range
+  findVideoForEmotion(emotion, intensity = 0, context = null) {
+    // Find videos matching the emotion
     const matches = Object.entries(this.emotionMap).filter(([filename, data]) => {
       return data.emotion === emotion;
     });
 
     if (matches.length === 0) {
-      // For neutral sub-emotions, fallback to regular neutral videos
+      // Handle sub-emotions and fallbacks
       if (emotion === 'curious' || emotion === 'waiting' || emotion === 'focused') {
-        return this.findVideoForEmotion('neutral');
+        return this.findVideoForEmotion('neutral', intensity, context);
       }
 
       // General fallback - pick any video
@@ -286,9 +368,79 @@ class VideoController {
       return allVideos.length > 0 ? allVideos[0][0] : null;
     }
 
-    // Random selection from matching videos
-    const randomIndex = Math.floor(Math.random() * matches.length);
-    return matches[randomIndex][0];
+    // Filter by intensity if specified
+    let filteredMatches = matches;
+    if (intensity !== 0) {
+      const intensityLevel = this.getIntensityLevel(intensity);
+      filteredMatches = matches.filter(([filename, data]) => {
+        return data.intensity === intensityLevel;
+      });
+
+      // Fallback to any intensity if no matches
+      if (filteredMatches.length === 0) {
+        filteredMatches = matches;
+      }
+    }
+
+    // Avoid repeating the same video recently (last 3 videos)
+    const recentVideos = this.getRecentVideos(3);
+    const availableMatches = filteredMatches.filter(([filename]) => {
+      return !recentVideos.includes(filename);
+    });
+
+    // Use available matches, or fall back to all if we've exhausted options
+    const finalMatches = availableMatches.length > 0 ? availableMatches : filteredMatches;
+
+    // Random selection from final matches
+    const randomIndex = Math.floor(Math.random() * finalMatches.length);
+    const selectedVideo = finalMatches[randomIndex][0];
+
+    // Track this video as recently used
+    this.trackVideoUsage(selectedVideo);
+
+    return selectedVideo;
+  }
+
+  /**
+   * Get intensity level from score
+   * @param {number} score - Sentiment score
+   * @returns {string} Intensity level
+   */
+  getIntensityLevel(score) {
+    const absScore = Math.abs(score);
+    if (absScore >= 4) return 'high';
+    if (absScore >= 2) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Track recently used videos to avoid repetition
+   * @param {string} videoFile - Video filename to track
+   */
+  trackVideoUsage(videoFile) {
+    if (!this.recentVideos) {
+      this.recentVideos = [];
+    }
+
+    // Add to front of array
+    this.recentVideos.unshift(videoFile);
+
+    // Keep only last 5 videos
+    if (this.recentVideos.length > 5) {
+      this.recentVideos = this.recentVideos.slice(0, 5);
+    }
+  }
+
+  /**
+   * Get recently used videos
+   * @param {number} count - Number of recent videos to return
+   * @returns {string[]} Array of recent video filenames
+   */
+  getRecentVideos(count = 3) {
+    if (!this.recentVideos) {
+      this.recentVideos = [];
+    }
+    return this.recentVideos.slice(0, count);
   }
 
   /**

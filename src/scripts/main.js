@@ -4,6 +4,7 @@ class CyberpunkPugCafe {
   constructor() {
     this.sentimentAnalyzer = null;
     this.videoController = null;
+    this.voiceController = null;
     this.chatHandler = null;
     this.initialized = false;
 
@@ -23,15 +24,20 @@ class CyberpunkPugCafe {
       this.videoController = new window.VideoController ?
         new window.VideoController() : new VideoController();
 
+      console.log('Initializing voice controller...');
+      this.voiceController = new window.VoiceController ?
+        new window.VoiceController() : new VoiceController();
+
       console.log('Initializing chat handler...');
       this.chatHandler = new window.ChatHandler ?
         new window.ChatHandler() : new ChatHandler();
 
       // Set dependencies
-      this.chatHandler.setDependencies(this.sentimentAnalyzer, this.videoController);
+      this.chatHandler.setDependencies(this.sentimentAnalyzer, this.videoController, this.voiceController);
 
-      // Initialize video controller (loads emotion map and preloads videos)
+      // Initialize controllers
       await this.videoController.initialize();
+      await this.voiceController.initialize();
 
       // Wire up UI events
       this.setupUI();

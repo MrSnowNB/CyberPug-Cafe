@@ -1,114 +1,146 @@
 {
-  "agressive typing.mp4": {
+  "agressive_typing_slightly_angry.mp4": {
     "emotion": "angry",
+    "intensity": "high",
+    "context": "frustration",
     "range": [
-      -4,
-      -5
+      -5,
+      -3
     ]
   },
-  "big smile.mp4": {
-    "emotion": "positive",
+  "angry_growling.mp4": {
+    "emotion": "angry",
+    "intensity": "high",
+    "context": "anger",
+    "range": [
+      -5,
+      -4
+    ]
+  },
+  "bored_with_the_fly.mp4": {
+    "emotion": "bored",
+    "intensity": "medium",
+    "context": "disinterest",
+    "range": [
+      -2,
+      -1
+    ]
+  },
+  "boreed_eats_snack.mp4": {
+    "emotion": "bored",
+    "intensity": "low",
+    "context": "idle",
+    "range": [
+      -1,
+      0
+    ]
+  },
+  "cute_neutral_head_tilt.mp4": {
+    "emotion": "neutral",
+    "intensity": "low",
+    "context": "curious",
+    "range": [
+      -1,
+      1
+    ]
+  },
+  "flower_sneeze.mp4": {
+    "emotion": "excited",
+    "intensity": "high",
+    "context": "surprise",
+    "range": [
+      3,
+      5
+    ]
+  },
+  "happy_big_smile.mp4": {
+    "emotion": "happy",
+    "intensity": "high",
+    "context": "joy",
+    "range": [
+      3,
+      5
+    ]
+  },
+  "hold_up_confused.mp4": {
+    "emotion": "confused",
+    "intensity": "medium",
+    "context": "bewilderment",
+    "range": [
+      -2,
+      0
+    ]
+  },
+  "i_have_an_idea.mp4": {
+    "emotion": "excited",
+    "intensity": "medium",
+    "context": "inspiration",
     "range": [
       2,
       4
     ]
   },
-  "eats snack.mp4": {
+  "looks_excited.mp4": {
+    "emotion": "excited",
+    "intensity": "high",
+    "context": "enthusiasm",
+    "range": [
+      3,
+      5
+    ]
+  },
+  "neutral_tongue_thing.mp4": {
     "emotion": "neutral",
-    "range": [
-      0,
-      0
-    ]
-  },
-  "flower sneeze.mp4": {
-    "emotion": "excited",
-    "range": [
-      3,
-      4
-    ]
-  },
-  "growling.mp4": {
-    "emotion": "angry",
-    "range": [
-      -4,
-      -5
-    ]
-  },
-  "head tilt.mp4": {
-    "emotion": "curious",
+    "intensity": "low",
+    "context": "playful",
     "range": [
       -1,
       1
     ]
   },
-  "looks excited.mp4": {
-    "emotion": "excited",
-    "range": [
-      3,
-      4
-    ]
-  },
-  "looks up and open mouth.mp4": {
-    "emotion": "excited",
-    "range": [
-      3,
-      4
-    ]
-  },
-  "looks up and raises hand.mp4": {
-    "emotion": "waiting",
-    "range": [
-      -1,
-      1
-    ]
-  },
-  "puts head down.mp4": {
-    "emotion": "negative",
-    "range": [
-      -2,
-      -4
-    ]
-  },
-  "surprised glow.mp4": {
-    "emotion": "excited",
-    "range": [
-      3,
-      4
-    ]
-  },
-  "the fly.mp4": {
-    "emotion": "negative",
-    "range": [
-      -2,
-      -4
-    ]
-  },
-  "tongue thing.mp4": {
+  "neutral_typing.mp4": {
     "emotion": "neutral",
+    "intensity": "low",
+    "context": "focused",
     "range": [
       -1,
       1
     ]
   },
-  "typing slightly scared.mp4": {
-    "emotion": "focused",
+  "sad_puts_head_down.mp4": {
+    "emotion": "sad",
+    "intensity": "medium",
+    "context": "disappointment",
     "range": [
-      -1,
-      1
+      -3,
+      -1
     ]
   },
-  "typing.mp4": {
-    "emotion": "neutral",
-    "range": [
-      -1,
-      0
-    ]
-  },
-  "wide eyed shocked.mp4": {
+  "surprised_glow.mp4": {
     "emotion": "excited",
+    "intensity": "high",
+    "context": "amazement",
     "range": [
       3,
-      4
+      5
+    ]
+  },
+  "typing_slightly_scared.mp4": {
+    "emotion": "scared",
+    "intensity": "medium",
+    "context": "nervousness",
+    "range": [
+      -3,
+      -1
+    ]
+  },
+  "wide_eyed_shocked.mp4": {
+    "emotion": "excited",
+    "intensity": "high",
+    "context": "shock",
+    "range": [
+      3,
+      5
     ]
   }
 }
