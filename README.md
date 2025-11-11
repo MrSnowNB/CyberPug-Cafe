@@ -91,6 +91,7 @@ Strong emotions trigger video sequences:
 - **Intensity Filtering**: Matches video intensity to emotion strength
 - **State Tracking**: Remembers recent videos and emotions
 - **Fallback System**: Gracefully handles missing videos
+- **Sad Priority**: "Sad" emotions always trigger head-down video (`sad_puts_head_down.mp4`)
 
 ## Files & Structure
 - `.agent/` — AI-first docs, gates, guides, architecture

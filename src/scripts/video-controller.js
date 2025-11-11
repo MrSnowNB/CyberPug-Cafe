@@ -457,7 +457,17 @@ class VideoController {
     // Use available videos, or fall back to all if we've exhausted options
     const finalVideos = availableVideos.length > 0 ? availableVideos : filteredVideos;
 
-    // Random selection from final videos
+    // Special handling for sad emotion - always prioritize head-down video
+    if (emotion === 'sad' && finalVideos.length > 0) {
+      // For sad, always use the head-down video (sad_puts_head_down.mp4)
+      const headDownVideo = finalVideos[0].video; // This should be sad_puts_head_down.mp4
+      this.trackVideoUsage(headDownVideo);
+      this.lastEmotion = emotion;
+      console.log(`Sad emotion detected: playing ${headDownVideo}`);
+      return headDownVideo;
+    }
+
+    // Random selection from final videos for all other emotions
     const randomIndex = Math.floor(Math.random() * finalVideos.length);
     const selectedVideo = finalVideos[randomIndex].video;
 
