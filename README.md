@@ -62,11 +62,42 @@ The server will run on `http://localhost:5000` and provide:
 - Check browser console for connection errors
 - Pylance import warnings are normal until TTS is installed
 
+## Enhanced Video System
+
+The chatbot now features a **dynamic multi-video emotion system** that makes full use of all 16 pug videos:
+
+### 🎭 **Emotion Arrays**
+Each emotion maps to multiple videos for variety:
+- **Happy**: `happy_big_smile.mp4`, `looks_excited.mp4`
+- **Curious**: `cute_neutral_head_tilt.mp4`, `hold_up_confused.mp4`
+- **Excited**: 6 different videos for maximum expressiveness
+- **Neutral**: 2 videos for varied idle states
+
+### 🔑 **Keyword Triggers**
+Special responses for contextual keywords:
+- **"treat"** → `happy_big_smile.mp4` or `looks_excited.mp4`
+- **"walk"** → `i_have_an_idea.mp4` or `looks_excited.mp4`
+- **"food"** → `boreed_eats_snack.mp4` or `looks_excited.mp4`
+- **"hello/goodbye"** → Greeting-specific videos
+
+### ⚡ **Chain Reactions**
+Strong emotions trigger video sequences:
+- **Very Happy** (intensity ≥4) → `wide_eyed_shocked.mp4` → `happy_big_smile.mp4`
+- **Very Angry** (intensity ≥4) → `agressive_typing_slightly_angry.mp4` → `angry_growling.mp4`
+- **Surprised** (intensity ≥4.5) → `wide_eyed_shocked.mp4` → `flower_sneeze.mp4`
+
+### 🎯 **Smart Features**
+- **No Repeats**: Avoids playing the same video twice in a row
+- **Intensity Filtering**: Matches video intensity to emotion strength
+- **State Tracking**: Remembers recent videos and emotions
+- **Fallback System**: Gracefully handles missing videos
+
 ## Files & Structure
 - `.agent/` — AI-first docs, gates, guides, architecture
 - `.vscode/` — Editor config for Cline/AI agents
 - `src/` — Main HTML/CSS/JS assets
-- `mp4/` — Video loops (see auto-mapping guide)
+- `mp4/` — 16 pug video loops with dynamic mapping
+- `src/config/emotion-map.json` — Enhanced emotion-to-video mapping
 
 ## AI-First Instructions
 - Use Cline agent to auto-assign mp4s to emotion categories by filename.

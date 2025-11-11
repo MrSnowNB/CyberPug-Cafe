@@ -1,146 +1,235 @@
 {
-  "agressive_typing_slightly_angry.mp4": {
-    "emotion": "angry",
-    "intensity": "high",
-    "context": "frustration",
-    "range": [
-      -5,
-      -3
+  "emotions": {
+    "angry": [
+      {
+        "video": "agressive_typing_slightly_angry.mp4",
+        "intensity": "high",
+        "context": "frustration",
+        "range": [
+          -5,
+          -3
+        ]
+      },
+      {
+        "video": "angry_growling.mp4",
+        "intensity": "high",
+        "context": "anger",
+        "range": [
+          -5,
+          -4
+        ]
+      }
+    ],
+    "bored": [
+      {
+        "video": "bored_with_the_fly.mp4",
+        "intensity": "medium",
+        "context": "disinterest",
+        "range": [
+          -2,
+          -1
+        ]
+      },
+      {
+        "video": "boreed_eats_snack.mp4",
+        "intensity": "low",
+        "context": "idle",
+        "range": [
+          -1,
+          0
+        ]
+      }
+    ],
+    "curious": [
+      {
+        "video": "cute_neutral_head_tilt.mp4",
+        "intensity": "low",
+        "context": "curious",
+        "range": [
+          -1,
+          1
+        ]
+      },
+      {
+        "video": "hold_up_confused.mp4",
+        "intensity": "medium",
+        "context": "bewilderment",
+        "range": [
+          -2,
+          0
+        ]
+      }
+    ],
+    "excited": [
+      {
+        "video": "flower_sneeze.mp4",
+        "intensity": "high",
+        "context": "surprise",
+        "range": [
+          3,
+          5
+        ]
+      },
+      {
+        "video": "happy_big_smile.mp4",
+        "intensity": "high",
+        "context": "joy",
+        "range": [
+          3,
+          5
+        ]
+      },
+      {
+        "video": "i_have_an_idea.mp4",
+        "intensity": "medium",
+        "context": "inspiration",
+        "range": [
+          2,
+          4
+        ]
+      },
+      {
+        "video": "looks_excited.mp4",
+        "intensity": "high",
+        "context": "enthusiasm",
+        "range": [
+          3,
+          5
+        ]
+      },
+      {
+        "video": "surprised_glow.mp4",
+        "intensity": "high",
+        "context": "amazement",
+        "range": [
+          3,
+          5
+        ]
+      },
+      {
+        "video": "wide_eyed_shocked.mp4",
+        "intensity": "high",
+        "context": "shock",
+        "range": [
+          3,
+          5
+        ]
+      }
+    ],
+    "happy": [
+      {
+        "video": "happy_big_smile.mp4",
+        "intensity": "high",
+        "context": "joy",
+        "range": [
+          3,
+          5
+        ]
+      }
+    ],
+    "confused": [
+      {
+        "video": "hold_up_confused.mp4",
+        "intensity": "medium",
+        "context": "bewilderment",
+        "range": [
+          -2,
+          0
+        ]
+      }
+    ],
+    "neutral": [
+      {
+        "video": "neutral_tongue_thing.mp4",
+        "intensity": "low",
+        "context": "playful",
+        "range": [
+          -1,
+          1
+        ]
+      },
+      {
+        "video": "cute_neutral_head_tilt.mp4",
+        "intensity": "low",
+        "context": "relaxed",
+        "range": [
+          -1,
+          1
+        ]
+      }
+    ],
+    "waiting": [
+      {
+        "video": "neutral_typing.mp4",
+        "intensity": "low",
+        "context": "processing",
+        "range": [
+          -1,
+          1
+        ]
+      }
+    ],
+    "sad": [
+      {
+        "video": "sad_puts_head_down.mp4",
+        "intensity": "medium",
+        "context": "disappointment",
+        "range": [
+          -3,
+          -1
+        ]
+      }
+    ],
+    "scared": [
+      {
+        "video": "typing_slightly_scared.mp4",
+        "intensity": "medium",
+        "context": "nervousness",
+        "range": [
+          -3,
+          -1
+        ]
+      }
     ]
   },
-  "angry_growling.mp4": {
-    "emotion": "angry",
-    "intensity": "high",
-    "context": "anger",
-    "range": [
-      -5,
-      -4
+  "keywords": {
+    "treat": [
+      "happy_big_smile.mp4",
+      "looks_excited.mp4"
+    ],
+    "walk": [
+      "i_have_an_idea.mp4",
+      "looks_excited.mp4"
+    ],
+    "play": [
+      "happy_big_smile.mp4",
+      "flower_sneeze.mp4"
+    ],
+    "food": [
+      "boreed_eats_snack.mp4",
+      "looks_excited.mp4"
+    ],
+    "hello": [
+      "cute_neutral_head_tilt.mp4",
+      "happy_big_smile.mp4"
+    ],
+    "goodbye": [
+      "sad_puts_head_down.mp4",
+      "neutral_tongue_thing.mp4"
     ]
   },
-  "bored_with_the_fly.mp4": {
-    "emotion": "bored",
-    "intensity": "medium",
-    "context": "disinterest",
-    "range": [
-      -2,
-      -1
-    ]
-  },
-  "boreed_eats_snack.mp4": {
-    "emotion": "bored",
-    "intensity": "low",
-    "context": "idle",
-    "range": [
-      -1,
-      0
-    ]
-  },
-  "cute_neutral_head_tilt.mp4": {
-    "emotion": "curious",
-    "intensity": "low",
-    "context": "curious",
-    "range": [
-      -1,
-      1
-    ]
-  },
-  "flower_sneeze.mp4": {
-    "emotion": "excited",
-    "intensity": "high",
-    "context": "surprise",
-    "range": [
-      3,
-      5
-    ]
-  },
-  "happy_big_smile.mp4": {
-    "emotion": "happy",
-    "intensity": "high",
-    "context": "joy",
-    "range": [
-      3,
-      5
-    ]
-  },
-  "hold_up_confused.mp4": {
-    "emotion": "confused",
-    "intensity": "medium",
-    "context": "bewilderment",
-    "range": [
-      -2,
-      0
-    ]
-  },
-  "i_have_an_idea.mp4": {
-    "emotion": "excited",
-    "intensity": "medium",
-    "context": "inspiration",
-    "range": [
-      2,
-      4
-    ]
-  },
-  "looks_excited.mp4": {
-    "emotion": "excited",
-    "intensity": "high",
-    "context": "enthusiasm",
-    "range": [
-      3,
-      5
-    ]
-  },
-  "neutral_tongue_thing.mp4": {
-    "emotion": "neutral",
-    "intensity": "low",
-    "context": "playful",
-    "range": [
-      -1,
-      1
-    ]
-  },
-  "neutral_typing.mp4": {
-    "emotion": "waiting",
-    "intensity": "low",
-    "context": "processing",
-    "range": [
-      -1,
-      1
-    ]
-  },
-  "sad_puts_head_down.mp4": {
-    "emotion": "sad",
-    "intensity": "medium",
-    "context": "disappointment",
-    "range": [
-      -3,
-      -1
-    ]
-  },
-  "surprised_glow.mp4": {
-    "emotion": "excited",
-    "intensity": "high",
-    "context": "amazement",
-    "range": [
-      3,
-      5
-    ]
-  },
-  "typing_slightly_scared.mp4": {
-    "emotion": "scared",
-    "intensity": "medium",
-    "context": "nervousness",
-    "range": [
-      -3,
-      -1
-    ]
-  },
-  "wide_eyed_shocked.mp4": {
-    "emotion": "excited",
-    "intensity": "high",
-    "context": "shock",
-    "range": [
-      3,
-      5
+  "chains": {
+    "very_happy": [
+      "wide_eyed_shocked.mp4",
+      "happy_big_smile.mp4"
+    ],
+    "very_angry": [
+      "agressive_typing_slightly_angry.mp4",
+      "angry_growling.mp4"
+    ],
+    "surprised": [
+      "wide_eyed_shocked.mp4",
+      "flower_sneeze.mp4"
     ]
   }
 }

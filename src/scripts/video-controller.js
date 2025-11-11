@@ -27,24 +27,63 @@ class VideoController {
         throw new Error(`Failed to load emotion map: ${response.status}`);
       }
       this.emotionMap = await response.json();
-      console.log('Emotion map loaded:', Object.keys(this.emotionMap).length, 'entries');
+      console.log('Emotion map loaded:', Object.keys(this.emotionMap.emotions).length, 'emotions,', Object.keys(this.emotionMap.keywords).length, 'keywords,', Object.keys(this.emotionMap.chains).length, 'chains');
+
+      // Initialize state tracking
+      this.lastEmotion = null;
+      this.lastVideoPlayed = null;
+      this.conversationContext = {
+        recentEmotions: [],
+        keywordTriggers: new Set()
+      };
+
       return this.emotionMap;
     } catch (error) {
       console.error('Error loading emotion map:', error);
       // Fallback empty map
-      this.emotionMap = {};
-      return {};
+      this.emotionMap = { emotions: {}, keywords: {}, chains: {} };
+      return this.emotionMap;
     }
   }
 
   /**
-   * Preload all video files from mp4 directory
+   * Preload all video files from emotion map
    */
   async preloadVideos() {
-    const videoFiles = Object.keys(this.emotionMap);
-    this.updateStatus(`Preloading ${videoFiles.length} videos...`);
+    // Collect all unique video filenames from emotions, keywords, and chains
+    const videoFiles = new Set();
 
-    const preloadPromises = videoFiles.map(async (filename) => {
+    // From emotions
+    if (this.emotionMap.emotions) {
+      Object.values(this.emotionMap.emotions).forEach(emotionArray => {
+        emotionArray.forEach(videoObj => {
+          videoFiles.add(videoObj.video);
+        });
+      });
+    }
+
+    // From keywords
+    if (this.emotionMap.keywords) {
+      Object.values(this.emotionMap.keywords).forEach(keywordArray => {
+        keywordArray.forEach(videoFile => {
+          videoFiles.add(videoFile);
+        });
+      });
+    }
+
+    // From chains
+    if (this.emotionMap.chains) {
+      Object.values(this.emotionMap.chains).forEach(chainArray => {
+        chainArray.forEach(videoFile => {
+          videoFiles.add(videoFile);
+        });
+      });
+    }
+
+    const uniqueVideoFiles = Array.from(videoFiles);
+    this.updateStatus(`Preloading ${uniqueVideoFiles.length} videos...`);
+
+    const preloadPromises = uniqueVideoFiles.map(async (filename) => {
       const videoPath = `../mp4/${filename}`;
       const video = document.createElement('video');
       video.muted = true;
@@ -68,7 +107,7 @@ class VideoController {
 
     try {
       await Promise.all(preloadPromises);
-      this.updateStatus(`${videoFiles.length} videos preloaded successfully`);
+      this.updateStatus(`${uniqueVideoFiles.length} videos preloaded successfully`);
       console.log('All videos preloaded');
     } catch (errors) {
       console.warn('Some videos failed to preload:', errors);
@@ -97,22 +136,32 @@ class VideoController {
    * @param {string} emotion - Emotion category
    * @param {number} voiceDurationMs - Expected voice duration in milliseconds
    * @param {boolean} withTransition - Whether to add transition effects
+   * @param {string} userMessage - Original user message for keyword detection
    * @returns {boolean} Success status
    */
-  switchToVideoForVoice(emotion, voiceDurationMs = 3000, withTransition = true) {
+  switchToVideoForVoice(emotion, voiceDurationMs = 3000, withTransition = true, userMessage = '') {
     // Clear any existing sequence
     this.clearCurrentSequence();
 
     const startTime = performance.now();
 
-    // Find emotion video
-    const emotionVideoFile = this.findVideoForEmotion(emotion);
-    if (!emotionVideoFile) {
+    // Find emotion video or chain
+    const result = this.findVideoForEmotion(emotion, 0, userMessage);
+
+    if (!result) {
       console.warn(`No video found for emotion: ${emotion}`);
       this.updateStatus(`No video for ${emotion}`);
       return false;
     }
 
+    // Check if result is a chain key
+    if (this.emotionMap.chains[result]) {
+      console.log(`Playing emotion chain: ${emotion} (${result}) for ${voiceDurationMs}ms`);
+      return this.playVideoChain(result, voiceDurationMs);
+    }
+
+    // Regular video playback
+    const emotionVideoFile = result;
     console.log(`Playing emotion video: ${emotion} (${emotionVideoFile}) for ${voiceDurationMs}ms`);
 
     // Start emotion video with continuous looping
@@ -348,60 +397,177 @@ class VideoController {
   }
 
   /**
-   * Find video filename for given emotion with context awareness
+   * Find video filename for given emotion with enhanced logic
    * @param {string} emotion - Emotion category
    * @param {number} intensity - Sentiment intensity (-5 to +5)
-   * @param {string} context - Optional context for better matching
-   * @returns {string|null} Video filename
+   * @param {string} userMessage - Original user message for keyword detection
+   * @returns {string|null} Video filename or chain key
    */
-  findVideoForEmotion(emotion, intensity = 0, context = null) {
-    // Find videos matching the emotion
-    const matches = Object.entries(this.emotionMap).filter(([filename, data]) => {
-      return data.emotion === emotion;
-    });
+  findVideoForEmotion(emotion, intensity = 0, userMessage = '') {
+    // Check for keyword overrides first
+    const keywordVideo = this.checkKeywordTriggers(userMessage);
+    if (keywordVideo) {
+      console.log(`Keyword trigger: ${keywordVideo}`);
+      this.trackVideoUsage(keywordVideo);
+      return keywordVideo;
+    }
 
-    if (matches.length === 0) {
+    // Check for chain reactions for strong emotions
+    const chainKey = this.checkChainReactions(emotion, intensity);
+    if (chainKey) {
+      console.log(`Chain reaction: ${chainKey}`);
+      return chainKey; // Return chain key, not video
+    }
+
+    // Get emotion videos array
+    const emotionVideos = this.emotionMap.emotions[emotion];
+    if (!emotionVideos || emotionVideos.length === 0) {
       // Handle sub-emotions and fallbacks
+      if (emotion === 'positive') return this.findVideoForEmotion('happy', intensity, userMessage);
+      if (emotion === 'negative') return this.findVideoForEmotion('sad', intensity, userMessage);
       if (emotion === 'curious' || emotion === 'waiting' || emotion === 'focused') {
-        return this.findVideoForEmotion('neutral', intensity, context);
+        return this.findVideoForEmotion('neutral', intensity, userMessage);
       }
 
-      // General fallback - pick any video
-      const allVideos = Object.entries(this.emotionMap);
-      return allVideos.length > 0 ? allVideos[0][0] : null;
+      // General fallback
+      console.warn(`No videos found for emotion: ${emotion}, using neutral`);
+      return this.findVideoForEmotion('neutral', intensity, userMessage);
     }
 
     // Filter by intensity if specified
-    let filteredMatches = matches;
+    let filteredVideos = emotionVideos;
     if (intensity !== 0) {
       const intensityLevel = this.getIntensityLevel(intensity);
-      filteredMatches = matches.filter(([filename, data]) => {
-        return data.intensity === intensityLevel;
+      filteredVideos = emotionVideos.filter(videoData => {
+        return videoData.intensity === intensityLevel;
       });
 
       // Fallback to any intensity if no matches
-      if (filteredMatches.length === 0) {
-        filteredMatches = matches;
+      if (filteredVideos.length === 0) {
+        filteredVideos = emotionVideos;
       }
     }
 
-    // Avoid repeating the same video recently (last 3 videos)
+    // Avoid repeating the same video recently
     const recentVideos = this.getRecentVideos(3);
-    const availableMatches = filteredMatches.filter(([filename]) => {
-      return !recentVideos.includes(filename);
+    const availableVideos = filteredVideos.filter(videoData => {
+      return !recentVideos.includes(videoData.video);
     });
 
-    // Use available matches, or fall back to all if we've exhausted options
-    const finalMatches = availableMatches.length > 0 ? availableMatches : filteredMatches;
+    // Use available videos, or fall back to all if we've exhausted options
+    const finalVideos = availableVideos.length > 0 ? availableVideos : filteredVideos;
 
-    // Random selection from final matches
-    const randomIndex = Math.floor(Math.random() * finalMatches.length);
-    const selectedVideo = finalMatches[randomIndex][0];
+    // Random selection from final videos
+    const randomIndex = Math.floor(Math.random() * finalVideos.length);
+    const selectedVideo = finalVideos[randomIndex].video;
 
-    // Track this video as recently used
+    // Track usage and update state
     this.trackVideoUsage(selectedVideo);
+    this.lastEmotion = emotion;
 
     return selectedVideo;
+  }
+
+  /**
+   * Check for keyword triggers in user message
+   * @param {string} message - User message
+   * @returns {string|null} Video filename if keyword found
+   */
+  checkKeywordTriggers(message) {
+    const lowerMessage = message.toLowerCase();
+
+    for (const [keyword, videos] of Object.entries(this.emotionMap.keywords)) {
+      if (lowerMessage.includes(keyword)) {
+        // Avoid repeating recent keyword videos
+        const recentVideos = this.getRecentVideos(2);
+        const availableVideos = videos.filter(video => !recentVideos.includes(video));
+
+        if (availableVideos.length > 0) {
+          return availableVideos[Math.floor(Math.random() * availableVideos.length)];
+        } else {
+          return videos[Math.floor(Math.random() * videos.length)];
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Check for chain reactions with strong emotions
+   * @param {string} emotion - Current emotion
+   * @param {number} intensity - Emotion intensity
+   * @returns {string|null} Chain key if triggered
+   */
+  checkChainReactions(emotion, intensity) {
+    // Trigger chains for very strong emotions
+    if (Math.abs(intensity) >= 4) {
+      if (emotion === 'happy' || emotion === 'excited') {
+        return 'very_happy';
+      }
+      if (emotion === 'angry') {
+        return 'very_angry';
+      }
+      if (emotion === 'excited' && intensity >= 4.5) {
+        return 'surprised';
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Play a chain of videos in sequence
+   * @param {string} chainKey - Chain identifier
+   * @param {number} voiceDurationMs - Voice duration for timing
+   */
+  playVideoChain(chainKey, voiceDurationMs = 3000) {
+    const chainVideos = this.emotionMap.chains[chainKey];
+    if (!chainVideos || chainVideos.length === 0) {
+      console.warn(`No chain found for: ${chainKey}`);
+      return false;
+    }
+
+    console.log(`Playing video chain: ${chainKey} - ${chainVideos.join(' → ')}`);
+
+    // Clear any existing sequence
+    this.clearCurrentSequence();
+
+    // Play first video immediately
+    this.playVideoWithLooping(chainVideos[0], true);
+
+    // Schedule subsequent videos
+    let delay = 1500; // 1.5 seconds for first transition
+    for (let i = 1; i < chainVideos.length; i++) {
+      const timeout = setTimeout(() => {
+        console.log(`Chain transition: ${chainVideos[i - 1]} → ${chainVideos[i]}`);
+        this.playVideoWithLooping(chainVideos[i], true);
+      }, delay);
+
+      this.sequenceTimeouts.push(timeout);
+      delay += 2000; // 2 seconds between each video
+    }
+
+    // Schedule return to neutral cycling after voice + chain duration
+    const totalChainTime = delay;
+    const returnDelay = Math.max(voiceDurationMs, totalChainTime) + 2000;
+
+    const returnTimeout = setTimeout(() => {
+      console.log('Chain complete, returning to neutral cycling');
+      this.startNeutralCycling();
+    }, returnDelay);
+
+    this.sequenceTimeouts.push(returnTimeout);
+
+    this.currentSequence = {
+      type: 'chain',
+      chainKey: chainKey,
+      videos: chainVideos,
+      voiceDuration: voiceDurationMs
+    };
+
+    this.updateStatus(`Chain: ${chainKey} (${chainVideos.length} videos)`);
+    return true;
   }
 
   /**
@@ -488,11 +654,32 @@ class VideoController {
    * @returns {Object} Status info
    */
   getStatus() {
+    // Count total unique videos from all sources
+    const totalVideos = new Set();
+
+    if (this.emotionMap.emotions) {
+      Object.values(this.emotionMap.emotions).forEach(emotionArray => {
+        emotionArray.forEach(videoObj => totalVideos.add(videoObj.video));
+      });
+    }
+
+    if (this.emotionMap.keywords) {
+      Object.values(this.emotionMap.keywords).forEach(keywordArray => {
+        keywordArray.forEach(videoFile => totalVideos.add(videoFile));
+      });
+    }
+
+    if (this.emotionMap.chains) {
+      Object.values(this.emotionMap.chains).forEach(chainArray => {
+        chainArray.forEach(videoFile => totalVideos.add(videoFile));
+      });
+    }
+
     return {
-      total_videos: Object.keys(this.emotionMap).length,
+      total_videos: totalVideos.size,
       preloaded_videos: this.preloadedVideos.size,
       current_video: this.currentVideo ? this.currentVideo.src.split('/').pop() : null,
-      all_prepared: this.preloadedVideos.size === Object.keys(this.emotionMap).length
+      all_prepared: this.preloadedVideos.size === totalVideos.size
     };
   }
 }

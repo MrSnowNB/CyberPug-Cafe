@@ -111,7 +111,9 @@ class ChatHandler {
       if (this.videoController) {
         const videoSwitched = this.videoController.switchToVideoForVoice(
           sentiment.emotion,
-          estimatedVoiceDuration
+          estimatedVoiceDuration,
+          true, // withTransition
+          message // userMessage for keyword detection
         );
         if (!videoSwitched) {
           console.warn('Video switch failed or exceeded latency');
