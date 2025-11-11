@@ -72,11 +72,112 @@
   border-color: transparent #ff0080 transparent transparent;
 }
 
+/* MCP Mode Toggle */
+.mcp-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00ff44;
+  border-radius: 5px;
+}
+
+.mcp-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.mcp-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #666;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+input:checked + .toggle-slider {
+  background: #00ff44;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(30px);
+}
+
+.toggle-labels {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  color: #00ff44;
+  pointer-events: none;
+}
+
+.plan-label {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.act-label {
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+input:checked ~ .toggle-labels .plan-label {
+  opacity: 0.5;
+}
+
+input:checked ~ .toggle-labels .act-label {
+  opacity: 1;
+}
+
+.mcp-status {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #00ff44;
+  text-transform: uppercase;
+}
+
+#current-mode {
+  font-weight: bold;
+  color: #00ffff;
+}
+
 /* Chat Input Area */
 .chat-input-area {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: flex-end;
+  align-items: stretch;
 }
 
 #message-input {

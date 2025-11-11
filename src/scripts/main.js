@@ -6,6 +6,7 @@ class CyberpunkPugCafe {
     this.videoController = null;
     this.voiceController = null;
     this.chatHandler = null;
+    this.mcpHandler = null;
     this.initialized = false;
 
     console.log('🚀 Cyberpunk Pug Cafe Initializing...');
@@ -32,12 +33,17 @@ class CyberpunkPugCafe {
       this.chatHandler = new window.ChatHandler ?
         new window.ChatHandler() : new ChatHandler();
 
+      console.log('Initializing MCP handler...');
+      this.mcpHandler = new window.MCPHandler ?
+        new window.MCPHandler() : new MCPHandler();
+
       // Set dependencies
       this.chatHandler.setDependencies(this.sentimentAnalyzer, this.videoController, this.voiceController);
 
       // Initialize controllers
       await this.videoController.initialize();
       await this.voiceController.initialize();
+      await this.mcpHandler.initialize();
 
       // Wire up UI events
       this.setupUI();
@@ -114,7 +120,26 @@ class CyberpunkPugCafe {
     try {
       console.log('Sending message:', message);
 
-      // Process message
+      // First, check if this is an MCP task
+      const mcpTask = this.mcpHandler.processMessageForMCP(message, {
+        timestamp: new Date().toISOString(),
+        source: 'user_input'
+      });
+
+      if (mcpTask) {
+        // MCP task was created and sent (in ACT mode) or previewed (in PLAN mode)
+        console.log('MCP task processed:', mcpTask.id);
+
+        // Show MCP confirmation in chat with enhanced messaging
+        const mcpMessage = this.mcpHandler.currentMode === 'plan'
+          ? `📋 **PLAN MODE**: Task drafted. Switch to ACT MODE to execute.`
+          : this.mcpHandler.getActModeMessage(mcpTask);
+
+        this.chatHandler.updateUI(message, mcpMessage);
+        return; // Don't process as regular chat
+      }
+
+      // Process as regular chat message
       const response = await this.chatHandler.handleMessage(message);
 
       // Update UI with response

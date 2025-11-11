@@ -16,6 +16,21 @@
         <div class="chat-panel">
             <div id="chat-history" class="chat-messages"></div>
             <div class="chat-input-area">
+                <!-- MCP Mode Toggle -->
+                <div class="mcp-toggle-container">
+                    <label class="mcp-toggle">
+                        <input type="checkbox" id="mcp-mode-toggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-labels">
+                            <span class="plan-label">Plan Mode</span>
+                            <span class="act-label">Act Mode</span>
+                        </span>
+                    </label>
+                    <div class="mcp-status">
+                        Mode: <span id="current-mode">Plan</span> |
+                        Server: <span id="mcp-server-status">⚪ Unknown</span>
+                    </div>
+                </div>
                 <textarea id="message-input" placeholder="Type your message here..."></textarea>
                 <button id="send-button">Send</button>
             </div>
@@ -36,6 +51,7 @@
     <script src="scripts/video-controller.js"></script>
     <script src="scripts/voice-controller.js"></script>
     <script src="scripts/chat-handler.js"></script>
+    <script src="scripts/mcp-handler.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 

@@ -62,6 +62,38 @@ The server will run on `http://localhost:5000` and provide:
 - Check browser console for connection errors
 - Pylance import warnings are normal until TTS is installed
 
+## MCP Tool-Calling Integration
+
+The chatbot includes **safe MCP (Model Context Protocol) integration** for Cline tool-calling capabilities:
+
+### 🎛️ **Plan/Act Modes**
+- **Plan Mode** (Default): Drafts coding tasks without execution
+- **Act Mode**: Sends serialized tasks to Cline MCP for execution
+- **UI Toggle**: Clear visual indicator and mode switching
+
+### 📋 **Task Serialization**
+Automatic conversion of coding requests to traceable YAML/Markdown tasks:
+```yaml
+---
+task: "Update sad emotion to head_down.mp4"
+context: "emotion-map.json"
+expected_outcome: "Sad triggers correct video"
+validation_gates: [unit, lint, type, docs]
+---
+```
+
+### 🔍 **Smart Detection**
+Automatically identifies coding requests using:
+- **Keywords**: update, fix, add, create, function, class, etc.
+- **File Extensions**: .js, .py, .json, .css, .html
+- **Imperative Language**: "please", "can you", "help me"
+
+### 🛡️ **Safety & Auditability**
+- **Manual Mode Control**: No automatic tool execution
+- **Full Logging**: Every action timestamped and logged
+- **File Traceability**: Tasks saved as downloadable Markdown files
+- **Error Handling**: Comprehensive failure capture and recovery
+
 ## Enhanced Video System
 
 The chatbot now features a **dynamic multi-video emotion system** that makes full use of all 16 pug videos:
