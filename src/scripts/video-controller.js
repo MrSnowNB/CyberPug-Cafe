@@ -127,11 +127,14 @@ class VideoController {
       type: 'voice-synced'
     };
 
-    // Schedule return to neutral cycling after voice completes
+    // Schedule return to neutral cycling after voice completes + buffer
+    const bufferTime = 2000 + Math.random() * 2000; // 2-4 second buffer
+    const totalDelay = voiceDurationMs + bufferTime;
+
     const returnToNeutralTimeout = setTimeout(() => {
-      console.log('Voice complete, returning to neutral video cycling');
+      console.log('Voice complete + buffer, returning to neutral video cycling');
       this.startNeutralCycling();
-    }, voiceDurationMs);
+    }, totalDelay);
 
     this.sequenceTimeouts = [returnToNeutralTimeout];
 
@@ -158,8 +161,8 @@ class VideoController {
     if (neutralVideo) {
       this.playVideoWithLooping(neutralVideo, true);
 
-      // Set up cycling every 8-12 seconds
-      const cycleInterval = 8000 + Math.random() * 4000; // 8-12 seconds
+      // Set up cycling every 20-35 seconds (much less frequent)
+      const cycleInterval = 20000 + Math.random() * 15000; // 20-35 seconds
 
       const cycleTimeout = setTimeout(() => {
         this.startNeutralCycling(); // Recursively cycle

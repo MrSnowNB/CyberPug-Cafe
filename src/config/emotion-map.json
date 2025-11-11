@@ -36,7 +36,7 @@
     ]
   },
   "cute_neutral_head_tilt.mp4": {
-    "emotion": "neutral",
+    "emotion": "curious",
     "intensity": "low",
     "context": "curious",
     "range": [
@@ -99,9 +99,9 @@
     ]
   },
   "neutral_typing.mp4": {
-    "emotion": "neutral",
+    "emotion": "waiting",
     "intensity": "low",
-    "context": "focused",
+    "context": "processing",
     "range": [
       -1,
       1
