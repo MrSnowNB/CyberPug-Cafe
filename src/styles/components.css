@@ -172,12 +172,81 @@ input:checked ~ .toggle-labels .act-label {
   color: #00ffff;
 }
 
+/* Status and Controls */
+.status-controls {
+    margin-bottom: 10px;
+}
+
+.service-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 10, 20, 0.8);
+    border: 1px solid #00ffff;
+    border-radius: 6px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-label {
+    color: #00ffff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-indicator {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.status-indicator.online {
+    color: #00ff00;
+    background: rgba(0, 255, 0, 0.2);
+}
+
+.status-indicator.offline {
+    color: #ff0040;
+    background: rgba(255, 0, 64, 0.2);
+}
+
+.status-indicator.checking {
+    color: #ffff00;
+    background: rgba(255, 255, 0, 0.2);
+}
+
+.cleanup-btn {
+    background: linear-gradient(45deg, #ff0040, #ff4080);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(255, 0, 64, 0.3);
+}
+
+.cleanup-btn:hover {
+    background: linear-gradient(45deg, #ff4080, #ff0040);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 0, 64, 0.4);
+}
+
 /* Chat Input Area */
 .chat-input-area {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: stretch;
+    padding: 15px;
+    background: rgba(0, 20, 40, 0.9);
+    border-top: 1px solid #00ffff;
+    box-shadow: 0 -2px 10px rgba(0, 255, 255, 0.3);
 }
 
 #message-input {

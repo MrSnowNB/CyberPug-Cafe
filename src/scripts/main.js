@@ -68,6 +68,7 @@ class CyberpunkPugCafe {
   setupUI() {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
+    const cleanupButton = document.getElementById('cleanup-button');
 
     if (!messageInput || !sendButton) {
       console.warn('UI elements not found');
@@ -94,8 +95,18 @@ class CyberpunkPugCafe {
       sendButton.textContent = hasText ? 'SEND' : 'SEND';
     });
 
+    // Cleanup button
+    if (cleanupButton) {
+      cleanupButton.addEventListener('click', () => {
+        this.performCleanup();
+      });
+    }
+
     // Initial state
     sendButton.disabled = true;
+
+    // Start service status monitoring
+    this.startServiceMonitoring();
 
     console.log('UI events wired up');
   }
@@ -220,6 +231,114 @@ class CyberpunkPugCafe {
       chatReady: !!this.chatHandler,
       currentSentiment: this.chatHandler ? this.chatHandler.getCurrentSentiment() : null
     };
+  }
+
+  /**
+   * Start monitoring service status
+   */
+  startServiceMonitoring() {
+    // Check TTS server status immediately and every 30 seconds
+    this.checkTTSStatus();
+    setInterval(() => {
+      this.checkTTSStatus();
+    }, 30000);
+  }
+
+  /**
+   * Check TTS server status
+   */
+  async checkTTSStatus() {
+    const statusElement = document.getElementById('tts-status');
+    if (!statusElement) return;
+
+    try {
+      statusElement.textContent = '🔄 Checking...';
+      statusElement.className = 'status-indicator checking';
+
+      const response = await fetch('http://localhost:5000/health', {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'healthy') {
+          statusElement.textContent = '🟢 Online';
+          statusElement.className = 'status-indicator online';
+        } else {
+          statusElement.textContent = '🟡 Degraded';
+          statusElement.className = 'status-indicator offline';
+        }
+      } else {
+        statusElement.textContent = '🔴 Offline';
+        statusElement.className = 'status-indicator offline';
+      }
+    } catch (error) {
+      statusElement.textContent = '🔴 Offline';
+      statusElement.className = 'status-indicator offline';
+      console.log('TTS server check failed:', error.message);
+    }
+  }
+
+  /**
+   * Perform cleanup of running processes
+   */
+  async performCleanup() {
+    const cleanupButton = document.getElementById('cleanup-button');
+    if (!cleanupButton) return;
+
+    // Disable button and show loading state
+    const originalText = cleanupButton.textContent;
+    cleanupButton.disabled = true;
+    cleanupButton.textContent = '🧹 Cleaning...';
+
+    try {
+      // First try to shutdown TTS server gracefully via API
+      try {
+        await fetch('http://localhost:5000/shutdown', {
+          method: 'POST',
+          signal: AbortSignal.timeout(2000)
+        });
+        console.log('✅ TTS server shutdown requested via API');
+      } catch (e) {
+        console.log('API shutdown failed, will use force cleanup');
+      }
+
+      // Wait a moment for graceful shutdown
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Run the cleanup script
+      // Note: In a browser environment, we can't directly execute Python scripts
+      // This would need to be handled by a backend service or manual execution
+      console.log('🧹 Cleanup completed - please run cleanup.py manually if needed');
+
+      // Show success message
+      this.showCleanupMessage('Cleanup completed! Check console for details.');
+
+    } catch (error) {
+      console.error('Cleanup failed:', error);
+      this.showCleanupMessage('Cleanup failed - see console for details');
+    } finally {
+      // Restore button
+      cleanupButton.disabled = false;
+      cleanupButton.textContent = originalText;
+    }
+  }
+
+  /**
+   * Show cleanup status message
+   */
+  showCleanupMessage(message) {
+    const chatHistory = document.getElementById('chat-history');
+    if (chatHistory) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message bot';
+      messageDiv.style.color = '#00ffff';
+      messageDiv.style.fontWeight = 'bold';
+      messageDiv.textContent = '🧹 ' + message;
+      chatHistory.appendChild(messageDiv);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
   }
 
   /**

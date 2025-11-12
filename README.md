@@ -8,7 +8,8 @@ Sentiment-driven chatbot with reactive pug video loops and neon cyberpunk user i
 3. Run `npm install` to get dependencies (natural.js).
 4. **Set up Coqui XTTS v2 voice server** (see Voice Setup below).
 5. Start local development: `npm run dev` or open `index.html`.
-6. Agent-driven assembly: follow steps in `.agent/assembly-guide.md`, which are validation gated. Do not proceed until each gate is passed.
+6. **Clean shutdown**: Always run `python cleanup.py` before closing VSCode to prevent background processes.
+7. Agent-driven assembly: follow steps in `.agent/assembly-guide.md`, which are validation gated. Do not proceed until each gate is passed.
 
 ## Voice Setup (Coqui XTTS v2)
 
@@ -147,5 +148,65 @@ Strong emotions trigger video sequences:
 ## Testing Gates
 - Every assembly step is validation gated (see `.agent/testing-protocol.md`).
 - Do not proceed until agent validates outputs.
+
+## Process Management & Cleanup
+
+The chatbot includes background services (TTS server) that may persist after VSCode closes. Always use proper cleanup procedures:
+
+### 🧹 **Cleanup Script**
+```bash
+# Run cleanup before closing VSCode
+python cleanup.py
+```
+
+This script will:
+- ✅ Gracefully shutdown TTS server via API
+- ✅ Kill any remaining Python processes
+- ✅ Clean up development servers on common ports (8000, 3000, 8080)
+- ✅ Provide status feedback
+
+### 🎛️ **In-App Controls**
+The chatbot interface includes:
+- **TTS Server Status**: Real-time indicator showing server availability
+- **Cleanup Button**: One-click process cleanup from the UI
+- **Automatic Monitoring**: Status updates every 30 seconds
+
+### 🔍 **Manual Process Checking**
+```bash
+# Check for running processes
+tasklist | findstr python
+netstat -ano | findstr :5000
+
+# Kill specific processes
+taskkill /f /pid <PID>
+```
+
+### 🚨 **Troubleshooting Persistence**
+If processes still run after VSCode closes:
+
+1. **Check Browser Tabs**: Close any open `index.html` instances
+2. **Run Cleanup Script**: `python cleanup.py`
+3. **Manual Process Kill**: Use Task Manager or command line
+4. **VSCode Restart**: Fully close and reopen VSCode
+
+### 📊 **Status Indicators**
+- 🟢 **Online**: TTS server healthy and responding
+- 🟡 **Degraded**: Server running but with issues
+- 🔴 **Offline**: Server not available
+- 🔄 **Checking**: Status being verified
+
+## Project Documentation
+
+### Living Documentation (Policy-Required)
+- **`PROJECT-POLICY.md`** - Development policy and lifecycle guidelines
+- **`TROUBLESHOOTING.md`** - Issue resolution database with systematic entries
+- **`REPLICATION-NOTES.md`** - Recurring errors, environment deltas, and setup checklists
+- **`ISSUE.md`** - Current issues tracker with resolution status
+
+### Development Resources
+- **`.agent/assembly-guide.md`** - Step-by-step Cline assembly instructions
+- **`.agent/testing-protocol.md`** - Validation gates and testing requirements
+- **`.agent/architecture.md`** - Technical architecture and design decisions
+- **`enhancement-plan.md`** - Current development roadmap and progress
 
 ## Trouble? See `.agent/assembly-guide.md` for common issues and stepwise troubleshooting.

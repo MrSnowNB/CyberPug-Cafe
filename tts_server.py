@@ -9,6 +9,8 @@ from TTS.api import TTS
 import io
 import os
 import logging
+import signal
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +26,24 @@ try:
 except Exception as e:
     logger.error(f"Failed to load TTS model: {e}")
     tts = None
+
+# Global flag for graceful shutdown
+shutdown_requested = False
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully"""
+    global shutdown_requested
+    logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+    shutdown_requested = True
+    # Give a moment for current requests to complete
+    import time
+    time.sleep(1)
+    logger.info("TTS server shutting down...")
+    sys.exit(0)
+
+# Register signal handlers for graceful shutdown
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 # Available speakers (you may need to adjust based on your XTTS installation)
 AVAILABLE_SPEAKERS = [
@@ -94,6 +114,24 @@ def list_speakers():
         "speakers": AVAILABLE_SPEAKERS,
         "recommended": "male_family_friendly"
     })
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    """Shutdown the server gracefully"""
+    logger.info("Shutdown requested via API endpoint")
+    global shutdown_requested
+    shutdown_requested = True
+
+    # Schedule shutdown after response
+    def delayed_shutdown():
+        import time
+        time.sleep(0.5)  # Brief delay to send response
+        os._exit(0)
+
+    import threading
+    threading.Thread(target=delayed_shutdown, daemon=True).start()
+
+    return jsonify({"status": "shutting_down", "message": "Server will shutdown shortly"})
 
 if __name__ == '__main__':
     logger.info("Starting Coqui XTTS v2 TTS Server on http://localhost:5000")

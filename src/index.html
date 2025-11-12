@@ -16,19 +16,32 @@
         <div class="chat-panel">
             <div id="chat-history" class="chat-messages"></div>
             <div class="chat-input-area">
-                <!-- MCP Mode Toggle -->
-                <div class="mcp-toggle-container">
-                    <label class="mcp-toggle">
-                        <input type="checkbox" id="mcp-mode-toggle">
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-labels">
-                            <span class="plan-label">Plan Mode</span>
-                            <span class="act-label">Act Mode</span>
-                        </span>
-                    </label>
-                    <div class="mcp-status">
-                        Mode: <span id="current-mode">Plan</span> |
-                        Server: <span id="mcp-server-status">⚪ Unknown</span>
+                <!-- Status and Controls -->
+                <div class="status-controls">
+                    <!-- Service Status -->
+                    <div class="service-status">
+                        <div class="status-item">
+                            <span class="status-label">TTS Server:</span>
+                            <span id="tts-status" class="status-indicator">🔄 Checking...</span>
+                        </div>
+                        <button id="cleanup-button" class="cleanup-btn" title="Clean up running processes">🧹
+                            Cleanup</button>
+                    </div>
+
+                    <!-- MCP Mode Toggle -->
+                    <div class="mcp-toggle-container">
+                        <label class="mcp-toggle">
+                            <input type="checkbox" id="mcp-mode-toggle">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-labels">
+                                <span class="plan-label">Plan Mode</span>
+                                <span class="act-label">Act Mode</span>
+                            </span>
+                        </label>
+                        <div class="mcp-status">
+                            Mode: <span id="current-mode">Plan</span> |
+                            Server: <span id="mcp-server-status">⚪ Unknown</span>
+                        </div>
                     </div>
                 </div>
                 <textarea id="message-input" placeholder="Type your message here..."></textarea>
