@@ -208,5 +208,6 @@ If processes still run after VSCode closes:
 - **`.agent/testing-protocol.md`** - Validation gates and testing requirements
 - **`.agent/architecture.md`** - Technical architecture and design decisions
 - **`enhancement-plan.md`** - Current development roadmap and progress
+- **`FAST_MCP_BRIDGE_SETUP.md`** - Complete setup guide for FastMCP + File Watcher bridge
 
 ## Trouble? See `.agent/assembly-guide.md` for common issues and stepwise troubleshooting.

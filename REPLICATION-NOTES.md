@@ -95,11 +95,14 @@ This document records recurring errors, flaky tests, environment/hardware deltas
 ## Replicable Setup Checklist
 
 ### Development Environment Setup
-- [ ] Python 3.8+ installed and in PATH
-- [ ] Node.js and npm available
-- [ ] Git configured with user credentials
-- [ ] VSCode with recommended extensions
-- [ ] All 16 MP4 files in `mp4/` directory
+- [x] Python 3.8+ installed and in PATH
+- [x] Node.js and npm available
+- [x] Git configured with user credentials
+- [x] VSCode with recommended extensions
+- [x] All 16 MP4 files in `mp4/` directory
+- [x] FastMCP library installed (version 2.13.0.2)
+- [x] File Watcher VS Code extension configured
+- [x] MCP server configuration updated
 
 ### First-Time Project Setup
 - [ ] Clone repository to clean directory
